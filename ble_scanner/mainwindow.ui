@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1160</width>
+    <height>714</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QListView" name="lv_service">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>90</y>
+      <width>301</width>
+      <height>121</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_service">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>70</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Service list</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_title">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>331</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>24</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>BLE Scanner</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_device">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Device list</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_connect">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>210</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Connect</string>
+    </property>
+   </widget>
+   <widget class="QListView" name="lv_device">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>91</y>
+      <width>401</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="viewMode">
+     <enum>QListView::ListMode</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_service">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>210</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Confrim</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_start">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>210</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start scanning</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="tb_state">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>20</y>
+      <width>971</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QListView" name="lv_character">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>90</y>
+      <width>301</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_character">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>70</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Characteristic list</string>
+    </property>
+   </widget>
+   <widget class="QTableView" name="tv_summary">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>280</y>
+      <width>571</width>
+      <height>371</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="tb_decode_content">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>280</y>
+      <width>271</width>
+      <height>371</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_character">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>130</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Confrim</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_decode">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>260</y>
+      <width>181</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Decode content (Base64)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_summary">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>260</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Summary</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_request">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>160</y>
+      <width>80</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Request</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_recie_content">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>260</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Recieve content(HEX)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_decode">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>250</y>
+      <width>71</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Decode</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="tb_recie_content">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>280</y>
+      <width>271</width>
+      <height>371</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_write_little">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>160</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="maxLength">
+     <number>2</number>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_write_big">
+    <property name="geometry">
+     <rect>
+      <x>990</x>
+      <y>160</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="maxLength">
+     <number>2</number>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_little">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>140</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Little</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="l_big">
+    <property name="geometry">
+     <rect>
+      <x>990</x>
+      <y>140</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Big</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_output">
+    <property name="geometry">
+     <rect>
+      <x>1050</x>
+      <y>250</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Output csv</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pb_output_txt">
+    <property name="geometry">
+     <rect>
+      <x>940</x>
+      <y>250</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Output txt</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1160</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
