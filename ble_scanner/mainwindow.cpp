@@ -23,8 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
     , m_need_read_byte(0)
     , m_already_read(0)
 {
+    qDebug() << "Current path: " << QDir::currentPath();
     m_ui->setupUi(this);
     m_ui->tb_state->setText("Welcome! \nPress \"Start scanning\" to search.");
+    m_ui->le_write_little->setText("00");
+    m_ui->le_write_big->setText("00");
     m_devices.clear();
     m_device_model->setStringList(QStringList{});
     connect(m_bt, SIGNAL(deviceUpdated(QBluetoothDeviceInfo)), this, SLOT(lvdeviceUpdate(QBluetoothDeviceInfo)));//SIGNAL(QBluetoothDeviceInfo) -> SLOT(QBluetoothDeviceInfo) not &
@@ -158,8 +161,15 @@ void MainWindow::on_pb_connect_clicked()
     const QBluetoothDeviceInfo device = m_devices.at(m_device_idx);
     qDebug() << "UI target device name: "<< device.name() << ", uuid: " << device.deviceUuid().toString();
     m_bt->ConnectToDevice(device);
+    m_device_name = device.name()+device.deviceUuid().toString();
 
     m_ui->tb_state->setText("Connecting to device...");
+}
+
+void MainWindow::on_pb_disconnect_clicked()
+{
+    m_bt->Disconnect();
+    ClearAll();
 }
 
 void MainWindow::on_lv_service_clicked(const QModelIndex &index)
@@ -305,6 +315,31 @@ void MainWindow::GetNeedReadType()
     }
 }
 
+void MainWindow::ClearAll()
+{
+    m_devices.clear();
+    m_device_model->setStringList(QStringList{});
+    m_service_model->setStringList(QStringList{});
+    m_characteristic_model->setStringList(QStringList{});
+    m_summary_model->clear();
+    m_services_uuids.clear();
+    m_characteristics.clear();
+    m_decode_content.clear();
+    m_receive_content.clear();
+    m_all_receive_content.clear();
+    m_crc32.clear();
+    m_summary_items.clear();
+
+    m_ui->le_write_little->setText("00");
+    m_ui->le_write_big->setText("00");
+    m_ui->lv_device->setModel(m_device_model);
+    m_ui->lv_service->setModel(m_service_model);
+    m_ui->lv_character->setModel(m_characteristic_model);
+    m_ui->tb_recie_content->setText("");
+    m_ui->tb_decode_content->setText("");
+    m_ui->tv_summary->setModel(m_summary_model);
+}
+
 void MainWindow::set_ee_summary_tv()
 {
     m_summary_model = new QStandardItemModel(0,18);
@@ -386,19 +421,43 @@ void MainWindow::service_ee_single_history(QByteArray content)
 
 void MainWindow::on_pb_output_clicked()
 {
-    QFile file("/Users/orson.hung/Documents/Project/Orson/qt_output/output.csv");
+    QString path = QDir::currentPath() + "/../../../qt_output/";
+    QString meter = m_device_name + "/";
+
+    QString target_dir = path + meter;
+    QDir dir(target_dir);
+    if (!dir.exists()){
+        dir.mkpath(".");
+        qDebug() << "create dir!!: "<< dir.absolutePath();
+    }
+
+    QString filename = "/output.csv";
+    const QString fp = target_dir + filename;
+    QFile file(fp);
 
     if ( !file.open(QFile::WriteOnly |QFile::Truncate)) {
         qDebug() << "File not exists";
     }   else    {
-        QTextStream output(&file);
-        for (auto row = 0; row < m_summary_model->rowCount(); row++) {
-            for (auto col = 0; col < 18; col++) {
-                output << m_summary_model->data(m_summary_model->index(row,col)).toString()<<", ";
+        if(m_service_idx==1){ //ee
+            QTextStream output(&file);
+            for (auto row = 0; row < m_summary_model->rowCount(); row++) {
+                for (auto col = 0; col < 18; col++) {
+                    output << m_summary_model->data(m_summary_model->index(row,col)).toString()<<", ";
+                }
+                output<<"\n";
             }
-            output<<"\n";
+            qDebug() << "CSV file is written!: "<< file.fileName();
+        }else{ //ff
+            QTextStream output(&file);
+            for (auto col = 0; col < m_summary_model->columnCount(); col++) {
+                for (auto row = 0; row < 28; row++) {
+                    output << m_summary_model->data(m_summary_model->index(row,col)).toString()<<", ";
+                }
+                output<<"\n";
+            }
+            qDebug() << "CSV file is written!: "<< file.fileName();
         }
-        qDebug() << "CSV file is written!: "<< file.fileName();
+
     }
 
     file.close();
@@ -406,10 +465,12 @@ void MainWindow::on_pb_output_clicked()
 
 void MainWindow::on_pb_output_txt_clicked()
 {
-    QString path = "/Users/orson.hung/Documents/Project/Orson/qt_output/";
+    QString path = QDir::currentPath() + "/../../../qt_output/";
+    QString meter = m_device_name + "/";
     QString folder = QString::number(m_request_idx);
 
-    QDir dir(path + folder);
+    QString target_dir = path + meter + folder;
+    QDir dir(target_dir);
     if (!dir.exists()){
         dir.mkpath(".");
         qDebug() << "create dir!!: "<< dir.absolutePath();
@@ -417,7 +478,7 @@ void MainWindow::on_pb_output_txt_clicked()
 
 
     QString filename = "/DataRecord.txt";
-    const QString fp = path + folder + filename;
+    const QString fp = target_dir + filename;
     QFile file(fp);
 
     if ( !file.open(QFile::WriteOnly |QFile::Truncate)) {
@@ -434,7 +495,7 @@ void MainWindow::on_pb_output_txt_clicked()
 
 void MainWindow::set_ff_summary_tv()
 {
-    m_summary_model = new QStandardItemModel(22,0);
+    m_summary_model = new QStandardItemModel(28,0);
     //QList<int> h_width = {40,40,45,30,30,30,30,30,30,45,45,45,45,30,30,30,30,40};
     QList<QString> v_header = {"Header Magic", "Data Length", "CRC32", "Reserve",
                                 "Magic", "DataRecord Ver.", "Unit Mode", "Color Params. Size", "Kernel Ver.", "Date&Time", "Status, State, Sample, Test", "Result, ROI, Element Number",
@@ -486,8 +547,8 @@ void MainWindow::service_ff_summary(QByteArray content)
     m_summary_items.append(new QStandardItem(QString(content.sliced(76,4).toHex()))); // reserve
 
     int offset = 80;
-    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,3), DataUtility::UCHAR))); // Whiteboard calibrated bgr
-    offset+=3;
+    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,12), DataUtility::FLOAT))); // Whiteboard calibrated bgr
+    offset+=12;
     m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,meter_param_size*4), DataUtility::FLOAT))); // meter params
     offset+=(meter_param_size*4);
     m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,roi_num*3*4), DataUtility::FLOAT))); // Final signal
@@ -596,4 +657,5 @@ void MainWindow::WriteDataRecord(QByteArray content, QTextStream &txt)
     }
     txt << "\n"; // end
 }
+
 

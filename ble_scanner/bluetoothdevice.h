@@ -14,6 +14,7 @@ public:
     void ConnectToDevice(const QBluetoothDeviceInfo &device);
     void SelectService(const QBluetoothUuid &uuid);
     void SelectCharacteristic(const QBluetoothUuid &uuid);
+    void Disconnect();
 
 public slots:
     void write(QByteArray &request);

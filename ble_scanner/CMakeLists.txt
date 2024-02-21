@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(ble_scanner VERSION 0.1 LANGUAGES CXX)
+#aux_source_directory(ble_scanner PROJECT_SOURCES)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -75,7 +76,9 @@ if (APPLE)
         )
     endif()
 endif()
-
+message("PROJECT_SOURCES: ${PROJECT_SOURCES}")
+message("CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
+message("CMAKE_INSTALL_BINDIR: ${CMAKE_INSTALL_BINDIR}")
 install(TARGETS ble_scanner
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

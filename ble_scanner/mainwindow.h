@@ -37,6 +37,8 @@ private slots:
 
     void on_pb_connect_clicked();
 
+    void on_pb_disconnect_clicked();
+
     void on_lv_service_clicked(const QModelIndex &index);
 
     void on_pb_service_clicked();
@@ -69,7 +71,6 @@ private:
     QList<QBluetoothDeviceInfo> m_devices;
     QStringListModel *m_device_model, *m_service_model, *m_characteristic_model;
     QStandardItemModel *m_summary_model;
-    QModelIndex *m_index;
     QBluetoothDeviceInfo m_target_device;
     QLowEnergyService *m_target_service;
     QLowEnergyCharacteristic m_target_characteristic;
@@ -88,6 +89,7 @@ private:
     void Request(QByteArray request);
     void GetNeedReadType();
     void WriteDataRecord(QByteArray content, QTextStream &txt);
+    void ClearAll();
     QByteArray m_decode_content, m_receive_content, m_all_receive_content, m_crc32;
 
     void set_ee_summary_tv();
@@ -97,5 +99,6 @@ private:
     void service_ff_summary(QByteArray content);
 
     QList<QStandardItem*> m_summary_items;
+    QString m_device_name;
 };
 #endif // MAINWINDOW_H

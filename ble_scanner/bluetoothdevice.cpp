@@ -64,6 +64,12 @@ void BluetoothDevice::SelectCharacteristic(const QBluetoothUuid &uuid)
     //qDebug()<<"service error?: "<< m_target_service->error();
 }
 
+void BluetoothDevice::Disconnect()
+{
+    qDebug()<<"BT Disconnect...";
+    m_controller->disconnectFromDevice();
+}
+
 // slots
 void BluetoothDevice::write(QByteArray &request)
 {
