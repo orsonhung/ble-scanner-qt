@@ -51,15 +51,15 @@ void BluetoothDevice::SelectCharacteristic(const QBluetoothUuid &uuid)
 {
     qDebug()<<"BT create characteristic: "<< uuid.toString();
     m_characteristic = m_service->characteristic(uuid);
-    //QLowEnergyDescriptor cccd = m_characteristic.clientCharacteristicConfiguration();
-    //m_service->writeDescriptor(cccd, QLowEnergyCharacteristic::CCCDEnableIndication);
-    //m_target_service->writeDescriptor(cccd, QByteArray::fromHex("0002"));
+    QLowEnergyDescriptor cccd = m_characteristic.clientCharacteristicConfiguration();
+    m_service->writeDescriptor(cccd, QLowEnergyCharacteristic::CCCDEnableIndication);
+    //m_service->writeDescriptor(cccd, QByteArray::fromHex("0002"));
     //QList<QLowEnergyDescriptor> descripts = m_characteristic.descriptors();
-    /*for(QList<QLowEnergyDescriptor>::const_iterator it = descripts.begin(); it!=descripts.end(); ++it){
-        qDebug()<<"BT descripts name & uuid & value: "<< it->name() << it->uuid().toString() << it->value();
-    }*/
+    //for(QList<QLowEnergyDescriptor>::const_iterator it = descripts.begin(); it!=descripts.end(); ++it){
+    //    qDebug()<<"BT descripts name & uuid & value: "<< it->name() << it->uuid().toString() << it->value();
+    //}
 
-    //m_target_descriptor = m_target_characteristic.descriptor(descripts[0].uuid());
+    //m_descriptor = m_characteristic.descriptor(descripts[0].uuid());
     //m_target_service->writeDescriptor(m_target_descriptor, QLowEnergyCharacteristic::CCCDEnableIndication);
     //qDebug()<<"service error?: "<< m_target_service->error();
 }
@@ -75,7 +75,7 @@ void BluetoothDevice::write(QByteArray &request)
 {
     qDebug()<<"BT in " << m_characteristic.name() << m_characteristic.uuid().toString() << " write request: "<< request;
     m_service->writeCharacteristic(m_characteristic, request, QLowEnergyService::WriteWithResponse); //with write confirmation
-    //m_target_service->writeDescriptor(m_target_descriptor, request);
+    //m_service->writeDescriptor(m_descriptor, request);
     //qDebug()<<"descripts name & uuid & value: "<< m_target_descriptor.name() << m_target_descriptor.uuid().toString() << m_target_descriptor.value();
 
 }
@@ -85,7 +85,8 @@ void BluetoothDevice::read(const QLowEnergyCharacteristic &charac)
     qDebug()<<"BT read";
     m_service->readCharacteristic(charac);
     //qDebug()<<"BT receive(): char name & uuid & value: "<< charac.name() << charac.uuid().toString() << charac.value().size() << charac.value();
-    //m_target_service->readDescriptor(m_target_descriptor);
+
+    //m_service->readDescriptor(m_descriptor);
     //qDebug()<<"service error?: "<< m_service->error();
     //qDebug()<<"descripts name & uuid & value: "<< m_target_descriptor.name() << m_target_descriptor.uuid().toString() << m_target_descriptor.value();
 }
@@ -93,6 +94,7 @@ void BluetoothDevice::read(const QLowEnergyCharacteristic &charac)
 void BluetoothDevice::receive(const QLowEnergyCharacteristic& charac, const QByteArray& value)
 {
     qDebug()<<"BT receive(): char name & uuid & value: "<< charac.name() << charac.uuid().toString() << charac.value().size() << charac.value();
+    qDebug()<<"BT receive(): descript name & uuid & value: "<< m_descriptor.name() << m_descriptor.uuid().toString() << m_descriptor.value();
     //m_value = m_characteristic.value();
     emit characteristicValueUpdated(value);
 }

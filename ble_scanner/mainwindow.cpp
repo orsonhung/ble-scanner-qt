@@ -22,12 +22,18 @@ MainWindow::MainWindow(QWidget *parent)
     , m_request_idx(0)
     , m_need_read_byte(0)
     , m_already_read(0)
+    , m_ee_record_num(0)
+    , m_ff_record_num(0)
+    , m_auto_save(false)
 {
     qDebug() << "Current path: " << QDir::currentPath();
     m_ui->setupUi(this);
     m_ui->tb_state->setText("Welcome! \nPress \"Start scanning\" to search.");
     m_ui->le_write_little->setText("00");
     m_ui->le_write_big->setText("00");
+    m_ui->pb_output->setDisabled(true);
+    m_ui->pb_output_txt->setDisabled(true);
+    m_ui->pb_output_all->setDisabled(true);
     m_devices.clear();
     m_device_model->setStringList(QStringList{});
     connect(m_bt, SIGNAL(deviceUpdated(QBluetoothDeviceInfo)), this, SLOT(lvdeviceUpdate(QBluetoothDeviceInfo)));//SIGNAL(QBluetoothDeviceInfo) -> SLOT(QBluetoothDeviceInfo) not &
@@ -37,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(receiveValue(const QByteArray&)), this, SLOT(accumReceiValue(const QByteArray&)));
     connect(this, SIGNAL(receiveValue(const QByteArray&)), this, SLOT(receiveDisplay()));
     connect(this, SIGNAL(recursiveRead(QByteArray&)), this, SLOT(read(QByteArray&)));
+    connect(this, SIGNAL(recursiveOutput(int)), this, SLOT(loopRead(int)));
 }
 
 MainWindow::~MainWindow()
@@ -125,6 +132,14 @@ void MainWindow::accumReceiValue(const QByteArray &value)
         m_request.push_back(iter_lit);
         m_request.push_back(iter_big);
         emit recursiveRead(m_request);
+    }   else    {
+        if(m_service_idx==2)
+            m_ui->pb_output_txt->setEnabled(true);
+        if(m_auto_save){
+            m_ui->pb_output_txt->click();
+            if(m_request_idx != (m_ff_record_num-1))
+                emit recursiveOutput(m_request_idx+1);
+        }
     }
 }
 
@@ -137,6 +152,43 @@ void MainWindow::read(QByteArray &request)
 void MainWindow::receiveDisplay()
 {
     m_ui->tb_recie_content->setText(m_all_receive_content.toHex());
+    if(m_service_idx==0){
+        QByteArray bt_uuid_barr = m_all_receive_content.sliced(16, 6);
+        QByteArray nums = m_all_receive_content.sliced(22, 4);
+        QByteArray ee_nums = nums.last(2);
+        QByteArray ff_nums = nums.first(2);
+        m_ee_record_num = DataUtility::byteArraytoInt(ee_nums);
+        m_ff_record_num = DataUtility::byteArraytoInt(ff_nums);
+        m_bt_uuid = QString(bt_uuid_barr.toHex()); //opposite: QByteArray a = QByteArray::fromHex("String")
+        for(int i = 2; i < m_bt_uuid.size(); i += 3)
+            m_bt_uuid.insert(i, '_');
+
+        qDebug()<<"ee record numbers: "<<m_ee_record_num;
+        qDebug()<<"ff record numbers: "<<m_ff_record_num;
+        qDebug()<<"bt uuid: "<<m_bt_uuid;
+    }
+}
+
+void MainWindow::loopRead(int idx)
+{
+    if(idx<m_ff_record_num){
+        if(idx<10){
+            m_req_text_little = QString::number(0) + QString::number(idx);
+        }   else if(idx==10)    {
+            m_req_text_little = QString("0a");
+        }   else if(idx==11)    {
+            m_req_text_little = QString("0b");
+        }   else if(idx==12)    {
+            m_req_text_little = QString("0c");
+        }   else if(idx==13)    {
+            m_req_text_little = QString("0d");
+        }
+        m_req_text_big = QString("00");
+        m_ui->le_write_little->setText(m_req_text_little);
+        m_ui->le_write_big->setText(m_req_text_big);
+
+        m_ui->pb_request->click();
+    }
 }
 
 //ui slots
@@ -183,6 +235,7 @@ void MainWindow::on_pb_service_clicked()
 {
     qDebug() << "UI service confirm button clicked!!";
     m_bt->SelectService(m_services_uuids[m_service_idx]);
+    m_auto_save = false;
 }
 
 void MainWindow::on_lv_character_clicked(const QModelIndex &index)
@@ -200,9 +253,11 @@ void MainWindow::on_pb_character_clicked()
     //m_service_idx=2;
     if(m_service_idx==1)
         set_ee_summary_tv();
-    else if(m_service_idx==2)
+    else if(m_service_idx==2){
         set_ff_summary_tv();
-
+        if(m_ff_record_num!=0)
+            m_ui->pb_output_all->setEnabled(true);
+    }
     //m_target_service->writeDescriptor(m_target_descriptor, QLowEnergyCharacteristic::CCCDEnableIndication);
 }
 
@@ -288,6 +343,8 @@ void MainWindow::on_pb_decode_clicked()
 void MainWindow::Request(QByteArray request)
 {
     m_bt->write(request);
+    m_ui->pb_output->setDisabled(true);
+    m_ui->pb_output_txt->setDisabled(true);
 }
 
 void MainWindow::GetNeedReadType()
@@ -317,6 +374,9 @@ void MainWindow::GetNeedReadType()
 
 void MainWindow::ClearAll()
 {
+    m_auto_save = false;
+    m_ee_record_num = 0;
+    m_ff_record_num = 0;
     m_devices.clear();
     m_device_model->setStringList(QStringList{});
     m_service_model->setStringList(QStringList{});
@@ -330,6 +390,9 @@ void MainWindow::ClearAll()
     m_crc32.clear();
     m_summary_items.clear();
 
+    m_ui->pb_output->setDisabled(true);
+    m_ui->pb_output_txt->setDisabled(true);
+    m_ui->pb_output_all->setDisabled(true);
     m_ui->le_write_little->setText("00");
     m_ui->le_write_big->setText("00");
     m_ui->lv_device->setModel(m_device_model);
@@ -421,8 +484,8 @@ void MainWindow::service_ee_single_history(QByteArray content)
 
 void MainWindow::on_pb_output_clicked()
 {
-    QString path = QDir::currentPath() + "/../../../qt_output/";
-    QString meter = m_device_name + "/";
+    QString path = QCoreApplication::applicationDirPath() + "/../../../qt_output/";
+    QString meter = m_device_name.split('{')[0] + "{" + m_bt_uuid + "}/";
 
     QString target_dir = path + meter;
     QDir dir(target_dir);
@@ -465,8 +528,8 @@ void MainWindow::on_pb_output_clicked()
 
 void MainWindow::on_pb_output_txt_clicked()
 {
-    QString path = QDir::currentPath() + "/../../../qt_output/";
-    QString meter = m_device_name + "/";
+    QString path = QCoreApplication::applicationDirPath() + "/../../../qt_output/";
+    QString meter = m_device_name.split('{')[0] + "{" + m_bt_uuid + "}/";
     QString folder = QString::number(m_request_idx);
 
     QString target_dir = path + meter + folder;
@@ -491,6 +554,16 @@ void MainWindow::on_pb_output_txt_clicked()
     }
 
     file.close();
+}
+
+void MainWindow::on_pb_output_all_clicked()
+{
+    qDebug() << "m_ff_record_num: "<<m_ff_record_num<<", m_service_idx: "<<m_service_idx;
+    if(m_ff_record_num!=0 && m_service_idx==2){
+        m_auto_save = true;
+        emit recursiveOutput(0);
+        qDebug() << "auto output run!! ";
+    }
 }
 
 void MainWindow::set_ff_summary_tv()
@@ -555,11 +628,11 @@ void MainWindow::service_ff_summary(QByteArray content)
     offset+=(roi_num*3*4);
     m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,result_num*4), DataUtility::FLOAT))); // Final Result
     offset+=((result_num*4));
-    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,3), DataUtility::UCHAR))); // Whiteboard BGR
-    offset+=3;
+    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,3*4), DataUtility::FLOAT))); // Whiteboard BGR
+    offset+=(3*4);
     m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,16), DataUtility::UINT32))); // Strip Area
     offset+=16;
-    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,roi_num*3), DataUtility::UCHAR))); // Initial ROIs BGR
+    m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,roi_num*3*4), DataUtility::FLOAT))); // Initial ROIs BGR
     offset+=(roi_num*3);
     m_summary_items.append(new QStandardItem(DataUtility::byteArraytoComma(content.sliced(offset,roi_num*4*4), DataUtility::UINT32))); // ROIs initial/final center
     offset+=(roi_num*4*4);
@@ -623,20 +696,22 @@ void MainWindow::WriteDataRecord(QByteArray content, QTextStream &txt)
     txt << "$Final Result Value\n" << DataUtility::byteArraytoComma(content.sliced(offset,result_num*4), DataUtility::FLOAT) << "\n";
     offset += (result_num*4);
 
-    txt << "$Whiteboard BGR\n" << DataUtility::byteArraytoComma(content.sliced(offset,3), DataUtility::UCHAR) << "\n";
-    offset += 3;
+    txt << "$Whiteboard BGR\n" << DataUtility::byteArraytoComma(content.sliced(offset,3*4), DataUtility::FLOAT) << "\n";
+    offset += (3*4);
 
     txt << "$Strip Area\n" << DataUtility::byteArraytoComma(content.sliced(offset,16), DataUtility::UINT32) << "\n";
     offset += 16;
 
     for(size_t roii = 0; roii < roi_num; roii++){
-        txt << "$Initial ROI" << (roii+1) << " BGR\n" << DataUtility::byteArraytoComma(content.sliced(offset,3), DataUtility::UCHAR) << "\n";
-        offset += 3;
+        txt << "$Initial ROI" << (roii+1) << " BGR\n" << DataUtility::byteArraytoComma(content.sliced(offset,3*4), DataUtility::FLOAT) << "\n";
+        offset += (3*4);
     }
 
     for(size_t roii = 0; roii < roi_num; roii++){
-        txt << "$ROI" << (roii+1) << " Center InitialXY, FinalXY\n" << DataUtility::byteArraytoComma(content.sliced(offset,16), DataUtility::UINT32) << "\n";
-        offset += 16;
+        txt << "$ROI" << (roii+1) << " initial center\n" << DataUtility::byteArraytoComma(content.sliced(offset,8), DataUtility::UINT32) << "\n";
+        offset += 8;
+        txt << "$ROI" << (roii+1) << " final center\n" << DataUtility::byteArraytoComma(content.sliced(offset,8), DataUtility::UINT32) << "\n";
+        offset += 8;
     }
 
     txt << "\n";
@@ -655,6 +730,36 @@ void MainWindow::WriteDataRecord(QByteArray content, QTextStream &txt)
         txt << "\n";
 
     }
+
+    for(size_t roii = 0; roii < roi_num; roii++){
+        txt << "$ROI" << (roii+1) << " First Chunk B\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+
+        txt << "\n";
+        txt << "$ROI" << (roii+1) << " First Chunk G\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+
+        txt << "\n";
+        txt << "$ROI" << (roii+1) << " First Chunk R\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+        txt << "\n";
+
+        txt << "$ROI" << (roii+1) << " Last Chunk B\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+
+        txt << "\n";
+        txt << "$ROI" << (roii+1) << " Last Chunk G\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+
+        txt << "\n";
+        txt << "$ROI" << (roii+1) << " Last Chunk R\n" << DataUtility::byteArraytoComma(content.sliced(offset,5*4), DataUtility::FLOAT) << "\n";
+        offset += 5*4;
+        txt << "\n";
+
+    }
+
+    txt << "$Estimate HCT\n" << QString::number(DataUtility::byteArraytoFloat(content.sliced(offset,4))) << "\n";
+    offset += 4;
     txt << "\n"; // end
 }
 

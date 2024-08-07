@@ -28,6 +28,7 @@ public slots:
     void accumReceiValue(const QByteArray &value);
     void read(QByteArray &request);
     void receiveDisplay();
+    void loopRead(int idx);
 
 private slots:
 
@@ -59,10 +60,13 @@ private slots:
 
     void on_pb_output_txt_clicked();
 
+    void on_pb_output_all_clicked();
+
 signals:
     void sendRequest();
     void receiveValue(const QByteArray &value);
     void recursiveRead(QByteArray &request);
+    void recursiveOutput(int idx);
 
 private:
     Ui::MainWindow *m_ui;
@@ -97,8 +101,11 @@ private:
     void service_ee_single_history(QByteArray content);
     void set_ff_summary_tv();
     void service_ff_summary(QByteArray content);
-
+    int m_ee_record_num;
+    int m_ff_record_num;
+    bool m_auto_save;
     QList<QStandardItem*> m_summary_items;
     QString m_device_name;
+    QString m_bt_uuid;
 };
 #endif // MAINWINDOW_H

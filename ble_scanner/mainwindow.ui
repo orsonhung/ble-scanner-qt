@@ -408,6 +408,19 @@
      <string>Disconnect</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pb_output_all">
+    <property name="geometry">
+     <rect>
+      <x>1050</x>
+      <y>220</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Output all</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

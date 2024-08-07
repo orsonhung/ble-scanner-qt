@@ -46,6 +46,9 @@ private:
     QList<QLowEnergyCharacteristic> m_characteristics;
     QLowEnergyCharacteristic m_characteristic;
 
+    //QList<QLowEnergyDescriptor> m_descriptors;
+    QLowEnergyDescriptor m_descriptor;
+
     QByteArray m_value;
 };
 

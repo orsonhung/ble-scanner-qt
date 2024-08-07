@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21.1)
 
 project(ble_scanner VERSION 0.1 LANGUAGES CXX)
 #aux_source_directory(ble_scanner PROJECT_SOURCES)
@@ -9,6 +9,7 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Bluetooth Core Gui)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Bluetooth Core Gui)
